@@ -55,6 +55,7 @@
 
     document.addEventListener("keydown", keyDownHandler, false);
     document.addEventListener("keyup", keyUpHandler, false);
+    document.addEventListener("mousemove", mouseMoveHandler, false);
 
     function run() {
         UpdateGameState();
@@ -177,6 +178,13 @@
         }
         else if(key.keyCode == 37) {
             leftPressed = false;
+        }
+    }
+
+    function mouseMoveHandler(e) {
+        var relativeX = e.clientX - canvas.offsetLeft;
+        if(relativeX > 0 && relativeX < canvas.width) {
+            padX = relativeX - padWidth/2;
         }
     }
 
