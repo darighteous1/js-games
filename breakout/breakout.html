@@ -7,20 +7,24 @@
         * { padding: 0; margin: 0; }
         canvas { background: #eee; display: block; margin: 0 auto; }
     </style>
+    <script src="physicsjs/dist/physicsjs-full.min.js"></script>
 </head>
 <body>
 
 <canvas id="playground" width="480" height="320"></canvas>
 
 <script>
-    // JavaScript code goes here
-    var canvas = document.getElementById("playground");
+
+Physics(function(world){
+  var canvas = document.getElementById("playground");
     var ctx = canvas.getContext("2d");
     var score = 0;
+    var lives = 3;
+    var isRunning = true;
 
     var x = canvas.width/2;
-    var y = canvas.height - 30;
-    var dx = 2;
+    var y = canvas.height - 50;
+    var dx = 1;
     var dy = -2;
     var ballRadius = 10;
 
@@ -28,13 +32,15 @@
     var padHeight = 10;
     var padX = canvas.width/2 - padWidth;
     var padY = canvas.height-10;
+    var padEndX = padX + padWidth;
+    var padCenter = padX + (padWidth / 2);
     
     // pad controls
     var rightPressed = false;
     var leftPressed = false;
 
     // bricks
-    var brickRowCount = 3;
+    var brickRowCount = 4;
     var brickColumnCount = 5;
     var brickWidth = 75;
     var brickHeight = 20;
@@ -49,7 +55,11 @@
     for(col = 0; col < brickColumnCount; col++) {
         bricks[col] = [];
         for(row = 0; row < brickRowCount; row++) {
-            bricks[col][row] = { x: 0, y: 0, status: 1 };
+            if (row == 0) {
+                bricks[col][row] = { x: 0, y: 0, status: 2 };
+            } else {
+                bricks[col][row] = { x: 0, y: 0, status: 1 };
+            }
         }
     }
 
@@ -58,8 +68,12 @@
     document.addEventListener("mousemove", mouseMoveHandler, false);
 
     function run() {
-        UpdateGameState();
-        draw();
+        if (isRunning) {
+            UpdateGameState();
+            draw();
+        }
+
+        requestAnimationFrame(run);
     }
 
     function draw() {
@@ -67,7 +81,7 @@
         drawBricks();
         drawBall();
         drawPad();
-        drawScore();
+        drawHUD();
     }
 
     function UpdateGameState() {
@@ -95,7 +109,7 @@
     function drawBricks() {
         for(col = 0; col < brickColumnCount; col++) {
             for(row = 0; row < brickRowCount; row++) {
-                if (bricks[col][row].status == 1) {
+                if (bricks[col][row].status > 0) {
                     var brickX = (col*(brickWidth+brickPadding))+brickOffsetLeft;
                     var brickY = (row*(brickHeight+brickPadding))+brickOffsetTop;
                     bricks[col][row].x = brickX;
@@ -103,7 +117,11 @@
                    
                     ctx.beginPath();
                     ctx.rect(brickX, brickY, brickWidth, brickHeight);
-                    ctx.fillStyle = "#0095DD";
+                    if (bricks[col][row].status == 1) {
+                        ctx.fillStyle = "#0095DD";
+                    } else {
+                        ctx.fillStyle = "#DDDD00";
+                    }
                     ctx.fill();
                     ctx.closePath();
                 } else {
@@ -113,10 +131,28 @@
         }
     }
 
+    function drawHUD() {
+        drawScore();
+        drawLives();
+    }
+
     function drawScore() {
         ctx.font = "16px Arial";
         ctx.fillStyle = "#0095DD";
-        ctx.fillText("Score: "+score, 8, 20);
+        ctx.fillText("Score: " + score, 8, 20);
+    }
+
+    function drawLives() {
+        ctx.font = "16px Arial";
+        ctx.fillStyle = "#0095FF";
+        ctx.fillText("Lives: " + lives, 100, 20);
+    }
+
+    function resetBall() {
+        var x = canvas.width/2;
+        var y = canvas.height - 50;
+        var dx = 0.3;
+        var dy = -2;
     }
 
     function updateBallPosition() {
@@ -124,12 +160,10 @@
              dy = -dy;
         } else if(y + dy > canvas.height-ballRadius) {
             if(x > padX && x < padX + padWidth) {
+                AdjustXVelocity(0);
                 dy = -dy;
-               // console.log(points);
             } else {
-                 dy = -dy; //canvas.height - ballRadius/2;
-               // console.log("GAME OVER");
-                
+                die();
             }
         }
 
@@ -152,13 +186,56 @@
     function collisionDetection() {
         for(col = 0; col < brickColumnCount; col++) {
             for(row = 0; row < brickRowCount; row++) {
+                
                 var brick = bricks[col][row];
-                if(x > brick.x && x < brick.x+brickWidth && y > brick.y && y < brick.y+brickHeight) {
+                
+                if(x + ballRadius > brick.x && x - ballRadius < brick.x+brickWidth && y - ballRadius > brick.y && y - ballRadius < brick.y+brickHeight) {
+                    
                     dy = -dy;
-                    brick.status = 0;
-                    score++;
-                    totalBricks--;
+                    brick.status--;
+                    
+                    if (brick.status == 0) {
+                        score += 10;
+                        totalBricks--;
+
+                        if (totalBricks == 0) {
+                            GameOver();
+                        }
+                    }
                 }
+            }
+        }
+    }
+
+    function AdjustXVelocity() {
+        if (dx > 0) { // ball is going right
+            if (x > padCenter - 5 && x < padCenter) { // hit with left part of pad
+                dx = -0.1;
+            } else if (x < padCenter - 5 && x > padCenter - 10) {
+                dx = -0.3;  
+            } else if (x < padCenter - 10 && x > padCenter - 15) {
+                dx = -0.5;  
+            } else if (x < padCenter - 15 && x > padCenter - 20) {
+                dx = -0.7;  
+            } else if (x < padCenter - 20 && x > padCenter - 30) {
+                dx = -0.9;  
+            } else if (x < padCenter - 30 && x > padCenter - 50) {
+                dx = - 1.1;
+            }
+
+        } else { // ball is going left
+            if (x > padCenter - 5 && x < padCenter) { // hit with right part of pad
+                dx = 0.1;
+            } else if (x > padCenter + 5 && x < padCenter + 10) {
+                dx = 0.3;  
+            } else if (x > padCenter + 10 && x < padCenter + 15) {
+                dx = 0.5;  
+            } else if (x > padCenter + 15 && x < padCenter + 20) {
+                dx = 0.7;  
+            } else if (x > padCenter + 20 && x < padCenter + 30) {
+                dx = 0.9;  
+            } else if (x > padCenter + 30 && x < padCenter + 50) {
+                dx = 1.1;
             }
         }
     }
@@ -175,8 +252,7 @@
     function keyUpHandler(key) {
         if(key.keyCode == 39) {
             rightPressed = false;
-        }
-        else if(key.keyCode == 37) {
+        } else if(key.keyCode == 37) {
             leftPressed = false;
         }
     }
@@ -188,7 +264,26 @@
         }
     }
 
-    setInterval(run, 10);
+    function die() {
+        lives--;
+        if (lives <= 0) {
+            GameOver();
+        } else {
+            resetBall();
+        }
+    }
+
+    function GameOver() {
+        isRunning = false;
+        resetBall();
+        document.removeEventListener("keydown", keyDownHandler);
+        document.removeEventListener("keyup", keyUpHandler);
+        document.removeEventListener("mousemove", mouseMoveHandler);
+    }
+
+    run();
+});
+    
 </script>
 
 </body>
