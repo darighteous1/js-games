@@ -15,8 +15,7 @@
 
 <script>
 
-Physics(function(world){
-  var canvas = document.getElementById("playground");
+    var canvas = document.getElementById("playground");
     var ctx = canvas.getContext("2d");
     var score = 0;
     var lives = 3;
@@ -110,11 +109,13 @@ Physics(function(world){
                 if (bricks[col][row].status > 0) {
                     var brickX = (col*(brickWidth+brickPadding))+brickOffsetLeft;
                     var brickY = (row*(brickHeight+brickPadding))+brickOffsetTop;
+                    
                     bricks[col][row].x = brickX;
                     bricks[col][row].y = brickY;
                    
                     ctx.beginPath();
                     ctx.rect(brickX, brickY, brickWidth, brickHeight);
+                    
                     if (bricks[col][row].status == 1) {
                         ctx.fillStyle = "#0095DD";
                     } else {
@@ -155,7 +156,7 @@ Physics(function(world){
         if(y + dy < ballRadius) {
              dy = -dy;
         } else if(y + dy > canvas.height-ballRadius) {
-            if(x > padX && x < padX + padWidth) {
+            if(x + ballRadius > padX && x - ballRadius < padX + padWidth) {
                 AdjustXVelocity();
                 dy = -dy;
             } else {
@@ -188,10 +189,12 @@ Physics(function(world){
                 if(BallCollidesWithBrickTopBottom(brick)) {
                     dy = -dy;
                     DestroyBrick(brick);
+                    bricks[col][row] = {};
         
                 } else if (BallCollidesWithBrickSide(brick)) {
                     dx = -dx;
                     DestroyBrick(brick);
+                    bricks[col][row] = {};
                 }
 
                 if (totalBricks == 0) {
@@ -203,16 +206,16 @@ Physics(function(world){
 
     function BallCollidesWithBrickTopBottom(brick) {
         // colide with bottom of brick
-        if ((y - ballRadius) == (brick.y + brickHeight) && x > brick.x && x < (brick.x + brickWidth) {
+        if ((y - ballRadius) == (brick.y + brickHeight) && x > brick.x && x < (brick.x + brickWidth)) {
             return true;
-        }  else if ((y + ballRadius) == brick.y x > brick.x && x < (brick.x + brickWidth)) { // colide with top of brick
+        }  else if ((y + ballRadius) == brick.y && x > brick.x && x < (brick.x + brickWidth)) { // colide with top of brick
             return true;
         } 
         return false;
     }
 
     function BallCollidesWithBrickSide(brick) {
-        if (y > ball.y && y < (ball.y + ballRadius) && (x - ballRadius) == (brick.x + brickWidth)) { // colide with right side of brick
+        if (y > brick.y && y < (brick.y + ballRadius) && (x - ballRadius) == (brick.x + brickWidth)) { // colide with right side of brick
             return true;
         } else if ((x + ballRadius) == brick.x && y > brick.y && y < (brick.y + brickHeight)) { // colide with left side of brick
             return true;
@@ -227,7 +230,6 @@ Physics(function(world){
         if (brick.status == 0) {
             score += 10;
             totalBricks--;
-            brick = {};
         }
     }
 
@@ -285,8 +287,7 @@ Physics(function(world){
     function keyDownHandler(key) {
         if(key.keyCode == 39) {
             rightPressed = true;
-        }
-        else if(key.keyCode == 37) {
+        } else if(key.keyCode == 37) {
             leftPressed = true;
         }
     }
@@ -324,7 +325,7 @@ Physics(function(world){
     }
 
     run();
-});
+
     
 </script>
 
