@@ -24,7 +24,7 @@
     var x = canvas.width/2;
     var y = canvas.height - 50;
     var dx = 1;
-    var dy = -2;
+    var dy = -3;
     var ballRadius = 10;
 
     var padWidth = 100;
@@ -119,7 +119,7 @@
                     if (bricks[col][row].status == 1) {
                         ctx.fillStyle = "#0095DD";
                     } else {
-                        ctx.fillStyle = "#DDDD00";
+                        ctx.fillStyle = "#FB9214";
                     }
                     ctx.fill();
                     ctx.closePath();
@@ -189,16 +189,18 @@
                 if(BallCollidesWithBrickTopBottom(brick)) {
                     dy = -dy;
                     DestroyBrick(brick);
-                    bricks[col][row] = {};
         
                 } else if (BallCollidesWithBrickSide(brick)) {
                     dx = -dx;
                     DestroyBrick(brick);
-                    bricks[col][row] = {};
                 }
 
                 if (totalBricks == 0) {
                     GameOver();
+                }
+
+                if (brick.status == 0) {
+                    bricks[col][row] = {};
                 }
             }
         }
@@ -215,9 +217,9 @@
     }
 
     function BallCollidesWithBrickSide(brick) {
-        if (y > brick.y && y < (brick.y + ballRadius) && (x - ballRadius) == (brick.x + brickWidth)) { // colide with right side of brick
+        if (y + ballRadius > brick.y && y - ballRadius < (brick.y + brickHeight) && (x - ballRadius) == (brick.x + brickWidth)) { // colide with right side of brick
             return true;
-        } else if ((x + ballRadius) == brick.x && y > brick.y && y < (brick.y + brickHeight)) { // colide with left side of brick
+        } else if ((x + ballRadius) == brick.x && y + ballRadius > brick.y && y - ballRadius < (brick.y + brickHeight)) { // colide with left side of brick
             return true;
         }
 
@@ -226,11 +228,14 @@
 
     function DestroyBrick(brick) {
         brick.status--;
-                    
+     
         if (brick.status == 0) {
             score += 10;
             totalBricks--;
+            brick = {};
         }
+
+        console.log(totalBricks);
     }
 
     function AdjustXVelocity() {
