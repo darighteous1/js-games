@@ -24,7 +24,7 @@
     var x = canvas.width / 2;
     var y = canvas.height - 150;
     var dx = 0.5;
-    var dy = 1;
+    var dy = 2;
     var ballRadius = 10;
 
     var padWidth = 100;
@@ -188,7 +188,7 @@
                 
                 if (BallCollidesWithBrick(brick)) {
                     DestroyBrick(brick);
-                                dy = -dy;
+                               // dy = -dy;
                 }
 
                 if (brick.status == 0) {
@@ -203,11 +203,31 @@
     }
 
     function BallCollidesWithBrick(brick) {
+var changedX = false;
         if (x - ballRadius <= brick.x + brickWidth &&
             x + ballRadius >= brick.x &&
             y - ballRadius <= brick.y + brickHeight &&
             y + ballRadius >= brick.y) {
 
+            if (y + ballRadius > brick.y && y - ballRadius < brick.y + brickHeight) {
+
+                if (BallIsMovingRight) {
+                    if (x + dx > brick.x) {
+                        dx = -dx;
+                    }
+                } else if (BallIsMovingLeft()) {
+                    if (x + dx < brick.x) {
+                        dx = -dx;
+                    }
+                }
+
+                changedX = true;
+
+            }
+
+            if (!changedX) {
+                dy = -dy;
+            }
             return true;
         }
 
