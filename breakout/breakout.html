@@ -24,7 +24,7 @@
     var x = canvas.width / 2;
     var y = canvas.height - 150;
     var dx = 0.5;
-    var dy = 3;
+    var dy = 1;
     var ballRadius = 10;
 
     var padWidth = 100;
@@ -188,6 +188,7 @@
                 
                 if (BallCollidesWithBrick(brick)) {
                     DestroyBrick(brick);
+                                dy = -dy;
                 }
 
                 if (brick.status == 0) {
@@ -202,83 +203,119 @@
     }
 
     function BallCollidesWithBrick(brick) {
-        if (BallIsMovingUpRight()) {
-            // check for collision with bottom and left side of brick
-            if (CollidesBottom(brick)) {
-                dy = -dy;
-            } else if (CollidesLeft(brick)) {
-                dx = -dx;
-            }
-        } else if (BallIsMovingUpLeft()) {
-            // check for collision with bottom and right side of brick
-            if (CollidesBottom(brick)) {
-                dy = -dy;
-            } else if (CollidesRight(brick)) {
-                dx = -dx;
-            }
-        } else if (BallIsMovingDownRight()) {
-            // check for collision with top and left side of brick
-            if (CollidesTop(brick)) {
-                dy = -dy;
-            } else if (CollidesLeft(brick)) {
-                dx = -dx;
-            }
-        } else if (BallIsMovingDownLeft()) {
-            // check for collision with top and right side of brick
-            if (CollidesTop(brick)) {
-                dy = -dy;
-            } else if (CollidesRight(brick)) {
-                dx = -dx;
-            }
+        if (x - ballRadius <= brick.x + brickWidth &&
+            x + ballRadius >= brick.x &&
+            y - ballRadius <= brick.y + brickHeight &&
+            y + ballRadius >= brick.y) {
+
+            return true;
         }
+
+        return false;
+
+        // if (!(x + ballRadius < brick.x || x - ballRadius > brick.x + brickWidth || y - ballRadius > brick.y + brickHeight || y + ballRadius < brick.y)) {
+        //     dy = -dy;
+        //     return true;
+        // }
+        // return false;
+       
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+       // if (BallIsMovingUpRight()) {
+        //     // check for collision with bottom and left side of brick
+        //     if (CollidesBottom(brick)) {
+        //         dy = -dy;
+        //     } else if (CollidesLeft(brick)) {
+        //         dx = -dx;
+        //     }
+        // } else if (BallIsMovingUpLeft()) {
+        //     // check for collision with bottom and right side of brick
+        //     if (CollidesBottom(brick)) {
+        //         dy = -dy;
+        //     } else if (CollidesRight(brick)) {
+        //         dx = -dx;
+        //     }
+        // } else if (BallIsMovingDownRight()) {
+        //     // check for collision with top and left side of brick
+        //     if (CollidesTop(brick)) {
+        //         dy = -dy;
+        //     } else if (CollidesLeft(brick)) {
+        //         dx = -dx;
+        //     }
+        // } else if (BallIsMovingDownLeft()) {
+        //     // check for collision with top and right side of brick
+        //     if (CollidesTop(brick)) {
+        //         dy = -dy;
+        //     } else if (CollidesRight(brick)) {
+        //         dx = -dx;
+        //     }
+        // }
     }
 
-    function BallIsMovingUpRight() {
-        return dx > 0 && dy < 0;
+    function BallIsMovingUp() {
+        return dy < 0;
     }
 
-    function BallIsMovingUpLeft() {
-        return dx < 0 && dy < 0;
+    function BallIsMovingLeft() {
+        return dx < 0;
     }
 
-    function BallIsMovingDownRight() {
-        return dx > 0 && dy > 0;
+    function BallIsMovingDown() {
+        return dy > 0;
     }
 
-    function BallIsMovingDownLeft() {
-        return dx < 0 && dy > 0;
+    function BallIsMovingRight() {
+        return dx > 0;
     }
 
     function CollidesTop(brick) {
-        if ((y + ballRadius >= brick.y) && (x + ballRadius >= brick.x) && (x - ballRadius <= brick.x + brickWidth)) {
-            return true;
-        }
+
+        return (!(y + ballRadius < brick.y && (x < brick.x || x > brick.x + brickWidth)));
+
+        // if ((y + ballRadius >= brick.y) && (x + ballRadius >= brick.x) && (x - ballRadius <= brick.x + brickWidth)) {
+        //     return true;
+        // }
         
-        return false;
+        // return false;
     }
 
     function CollidesBottom(brick) {
-        if ((y - ballRadius >= brick.y + brickHeight ) && (x + ballRadius >= brick.x) && (x - ballRadius <= brick.x + brickWidth)) {
-            return true;
-        }
+        return (!(y - ballRadius > brick.y + brickHeight && (x < brick.x || x > brick.x + brickWidth)));
+        // if ((y - ballRadius >= brick.y + brickHeight ) && (x + ballRadius >= brick.x) && (x - ballRadius <= brick.x + brickWidth)) {
+        //     return true;
+        // }
 
-        return false;        
+        // return false;        
     }
 
     function CollidesLeft(brick) {
-        if ((y + ballRadius >= brick.y) && (y - ballRadius <= brick.y + brickHeight) && (x + ballRadius >= brick.x)) {
-            return true;
-        }
+        //return (!())
+        // if ((y + ballRadius >= brick.y) && (y - ballRadius <= brick.y + brickHeight) && (x + ballRadius >= brick.x)) {
+        //     return true;
+        // }
 
-        return false;     
+        // return false;     
     }
     
     function CollidesRight(brick) {
-        if ((y + ballRadius >= brick.y) && (y - ballRadius <= brick.y + brickHeight) && (x - ballRadius <= brick.x + brickWidth)) {
-            return true;
-        }
+        // if ((y + ballRadius >= brick.y) && (y - ballRadius <= brick.y + brickHeight) && (x - ballRadius <= brick.x + brickWidth)) {
+        //     return true;
+        // }
 
-        return false;
+        // return false;
     }
 
     function DestroyBrick(brick) {
