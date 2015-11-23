@@ -21,10 +21,10 @@
     var lives = 3;
     var isRunning = true;
 
-    var x = canvas.width/2;
-    var y = canvas.height - 50;
-    var dx = 1;
-    var dy = -3;
+    var x = canvas.width / 2;
+    var y = canvas.height - 150;
+    var dx = 0.5;
+    var dy = 3;
     var ballRadius = 10;
 
     var padWidth = 100;
@@ -46,7 +46,7 @@
     var brickOffsetLeft = 30;
 
     var totalBricks = brickRowCount * brickColumnCount;
-    // init bricks
+    // init brickOffsetLeft
 
     var bricks = [];
     for(col = 0; col < brickColumnCount; col++) {
@@ -186,40 +186,95 @@
                 
                 var brick = bricks[col][row];
                 
-                if(BallCollidesWithBrickTopBottom(brick)) {
-                    dy = -dy;
+                if (BallCollidesWithBrick(brick)) {
                     DestroyBrick(brick);
-        
-                } else if (BallCollidesWithBrickSide(brick)) {
-                    dx = -dx;
-                    DestroyBrick(brick);
-                }
-
-                if (totalBricks == 0) {
-                    GameOver();
                 }
 
                 if (brick.status == 0) {
                     bricks[col][row] = {};
                 }
+
+                if (totalBricks == 0) {
+                    GameOver();
+                }
             }
         }
     }
 
-    function BallCollidesWithBrickTopBottom(brick) {
-        // colide with bottom of brick
-        if ((y - ballRadius) == (brick.y + brickHeight) && x > brick.x && x < (brick.x + brickWidth)) {
+    function BallCollidesWithBrick(brick) {
+        if (BallIsMovingUpRight()) {
+            // check for collision with bottom and left side of brick
+            if (CollidesBottom(brick)) {
+                dy = -dy;
+            } else if (CollidesLeft(brick)) {
+                dx = -dx;
+            }
+        } else if (BallIsMovingUpLeft()) {
+            // check for collision with bottom and right side of brick
+            if (CollidesBottom(brick)) {
+                dy = -dy;
+            } else if (CollidesRight(brick)) {
+                dx = -dx;
+            }
+        } else if (BallIsMovingDownRight()) {
+            // check for collision with top and left side of brick
+            if (CollidesTop(brick)) {
+                dy = -dy;
+            } else if (CollidesLeft(brick)) {
+                dx = -dx;
+            }
+        } else if (BallIsMovingDownLeft()) {
+            // check for collision with top and right side of brick
+            if (CollidesTop(brick)) {
+                dy = -dy;
+            } else if (CollidesRight(brick)) {
+                dx = -dx;
+            }
+        }
+    }
+
+    function BallIsMovingUpRight() {
+        return dx > 0 && dy < 0;
+    }
+
+    function BallIsMovingUpLeft() {
+        return dx < 0 && dy < 0;
+    }
+
+    function BallIsMovingDownRight() {
+        return dx > 0 && dy > 0;
+    }
+
+    function BallIsMovingDownLeft() {
+        return dx < 0 && dy > 0;
+    }
+
+    function CollidesTop(brick) {
+        if ((y + ballRadius >= brick.y) && (x + ballRadius >= brick.x) && (x - ballRadius <= brick.x + brickWidth)) {
             return true;
-        }  else if ((y + ballRadius) == brick.y && x > brick.x && x < (brick.x + brickWidth)) { // colide with top of brick
-            return true;
-        } 
+        }
+        
         return false;
     }
 
-    function BallCollidesWithBrickSide(brick) {
-        if (y + ballRadius > brick.y && y - ballRadius < (brick.y + brickHeight) && (x - ballRadius) == (brick.x + brickWidth)) { // colide with right side of brick
+    function CollidesBottom(brick) {
+        if ((y - ballRadius >= brick.y + brickHeight ) && (x + ballRadius >= brick.x) && (x - ballRadius <= brick.x + brickWidth)) {
             return true;
-        } else if ((x + ballRadius) == brick.x && y + ballRadius > brick.y && y - ballRadius < (brick.y + brickHeight)) { // colide with left side of brick
+        }
+
+        return false;        
+    }
+
+    function CollidesLeft(brick) {
+        if ((y + ballRadius >= brick.y) && (y - ballRadius <= brick.y + brickHeight) && (x + ballRadius >= brick.x)) {
+            return true;
+        }
+
+        return false;     
+    }
+    
+    function CollidesRight(brick) {
+        if ((y + ballRadius >= brick.y) && (y - ballRadius <= brick.y + brickHeight) && (x - ballRadius <= brick.x + brickWidth)) {
             return true;
         }
 
