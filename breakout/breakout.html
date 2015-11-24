@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
@@ -32,6 +32,7 @@
     padHeight = 10,
     padX = canvas.width/2 - padWidth,
     padY = canvas.height-10,
+    padSpeed = 7,
     // pad controls
     rightPressed = false,
     leftPressed = false,
@@ -66,10 +67,7 @@
         }
     }
 
-    document.addEventListener("keydown", keyDownHandler, false);
-    document.addEventListener("keyup", keyUpHandler, false);
-    document.addEventListener("mousemove", mouseMoveHandler, false);
-    document.addEventListener("click", ReleaseBall, false)
+    
 
     function Run() {
         if (isRunning) {
@@ -166,9 +164,12 @@
 
     function ReleaseBall() {
         if (ballIsOnPad) {
-            ballIsOnPad = false;
-            dy = -3;
-            dx = 0;
+            var padCenter = padX + padWidth / 2;
+            if ( padCenter > ballRadius || padCenter < canvas.width) {
+                ballIsOnPad = false;
+                dy = -3;
+                dx = 0;
+            }
         }
     }
 
@@ -184,6 +185,7 @@
         if ((x + ballRadius >= canvas.width) || (x - ballRadius <= 0)) {
             dx = -dx;
         } else if ((y - ballRadius <= 0) || BallCollidesWithPad()) {
+            console.log(y);
             dy = -dy;
         } else if (y + ballRadius >= canvas.height) {
             die();
@@ -191,10 +193,18 @@
     }
 
     function UpdatePadPosition() {
-        if (leftPressed) {
-            padX = padX - 3 >= 0 ? padX - 3 : 0;
-        } else if (rightPressed) {
-            padX = padX + 3 +padWidth <= canvas.width ? padX + 3 : padX;
+        if (ballIsOnPad) {
+            if (leftPressed) {
+                padX = padX - padSpeed > -padWidth / 2 + ballRadius + 5 ? padX - padSpeed : -padWidth / 2 + ballRadius + 5;
+            } else if (rightPressed) {
+                padX = padX + padSpeed + padWidth < canvas.width + padWidth / 2 - ballRadius - 5 ? padX + padSpeed : canvas.width - padWidth / 2 - ballRadius - 5;
+            }
+        } else {
+            if (leftPressed) {
+                padX = padX - padSpeed > -padWidth / 2  ? padX - padSpeed : -padWidth / 2;
+            } else if (rightPressed) {
+                padX = padX + padSpeed + padWidth < canvas.width + padWidth / 2  ? padX + padSpeed : canvas.width - padWidth / 2;
+            }
         }
     }
 
@@ -335,6 +345,36 @@
         }
     }
 
+    function die() {
+        lives--;
+        if (lives <= 0) {
+            GameOver();
+        } else {
+            ResetBall();
+        }
+    }
+
+    function Stop() {
+        isRunning = false;
+        RemoveEventListeners();
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function Win() {
+        Stop();
+        ctx.font = "72px Arial";
+        ctx.fillStyle = "#0095FF";
+        ctx.fillText("YOU WIN!", 250, 300);
+
+    }
+
+    function GameOver() {
+        Stop();
+        ctx.font = "72px Arial";
+        ctx.fillStyle = "#0095FF";
+        ctx.fillText("LOSER!", 350, 300);        
+    }
+
     function GetRandomInt(min, max) {
         return Math.floor(Math.random() * (max - min)) + min;
     }
@@ -350,12 +390,7 @@
             isRunning = !isRunning;
             return;
         } else if (key.keyCode == 32) { // space key
-            if (ballIsOnPad) {
-                ballIsOnPad = false;
-                dy = -3;
-                dx = 0;
-            }
-
+            ReleaseBall();
             return;
         }
     }
@@ -375,40 +410,28 @@
         }
     }
 
-    function die() {
-        lives--;
-        if (lives <= 0) {
-            GameOver();
-        } else {
-            ResetBall();
-        }
+    function Init() {
+        InitEventListeners();
+        ResetBall();
     }
 
-    function Stop() {
-        isRunning = false;
+    function InitEventListeners() {
+        document.addEventListener("keydown", keyDownHandler, false);
+        document.addEventListener("keyup", keyUpHandler, false);
+        document.addEventListener("mousemove", mouseMoveHandler, false);
+        document.addEventListener("click", ReleaseBall, false);
+    }
 
+    function RemoveEventListeners() {
         document.removeEventListener("keydown", keyDownHandler);
         document.removeEventListener("keyup", keyUpHandler);
         document.removeEventListener("mousemove", mouseMoveHandler);
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        document.removeEventListener("click", ReleaseBall);
     }
 
-    function Win() {
-        Stop();
-        ctx.font = "72px Arial";
-        ctx.fillStyle = "#0095FF";
-        ctx.fillText("YOU WIN!", 250, 300);
+    
 
-    }
-
-    function GameOver() {
-        Stop();
-        ctx.font = "72px Arial";
-        ctx.fillStyle = "#0095FF";
-        ctx.fillText("LOSER!", 350, 300);        
-    }
-
-    ResetBall();
+    Init();
     Run();
 
     
