@@ -15,47 +15,46 @@
 
 <script>
 
-    var canvas = document.getElementById("playground");
-    var ctx = canvas.getContext("2d");
-    var score = 0;
-    var lives = 3;
-    var isRunning = true;
-
-    var x = canvas.width / 2;
-    var y = canvas.height - 350;
-    var dx = 0.5;
-    var dy = 3;
-    var ballRadius = 10;
-
-    var padWidth = 100;
-    var padHeight = 10;
-    var padX = canvas.width/2 - padWidth;
-    var padY = canvas.height-10;
-    
+    var canvas = document.getElementById("playground"),
+    ctx = canvas.getContext("2d"),
+    score = 0,
+    lives = 3,
+    isRunning = true,
+    ballIsOnPad = true,
+    // ball props
+    x = canvas.width / 2,
+    y = canvas.height - 350,
+    dx = 0.5,
+    dy = 3,
+    ballRadius = 10,
+    // pad props
+    padWidth = 100,
+    padHeight = 10,
+    padX = canvas.width/2 - padWidth,
+    padY = canvas.height-10,
     // pad controls
-    var rightPressed = false;
-    var leftPressed = false;
-
+    rightPressed = false,
+    leftPressed = false,
     // bricks
-    var brickRowCount = 7
-    var brickColumnCount = 9;
-    var brickWidth = 75;
-    var brickHeight = 20;
-    var brickPadding = 10;
-    var brickOffsetTop = 30;
-    var brickOffsetLeft = 30;
+    brickRowCount = 1,
+    brickColumnCount = 1,
+    brickWidth = 75,
+    brickHeight = 20,
+    brickPadding = 10,
+    brickOffsetTop = 30,
+    brickOffsetLeft = 30,
+    totalBricks = brickRowCount * brickColumnCount,
 
-    var totalBricks = brickRowCount * brickColumnCount;
-    // init brickOffsetLeft
-    var brick;
-    var bricks = [];
+    brick,
+    bricks = [];
+
     for(col = 0; col < brickColumnCount; col++) {
         bricks[col] = [];
         for(row = 0; row < brickRowCount; row++) {
             if (row == 0) {
-                bricks[col][row] = { x: 0, y: 0, status: 3 };
+                bricks[col][row] = { x: 0, y: 0, status: 1 }; // top row is always with status 3 bricks
             } else {
-                var status = getRandomInt(0, 100);
+                var status = GetRandomInt(0, 100);
                 if ( status < 15) {
                     bricks[col][row] = { x: 0, y: 0, status: 3 };    
                 } else if (status < 40) {
@@ -70,31 +69,32 @@
     document.addEventListener("keydown", keyDownHandler, false);
     document.addEventListener("keyup", keyUpHandler, false);
     document.addEventListener("mousemove", mouseMoveHandler, false);
+    document.addEventListener("click", ReleaseBall, false)
 
-    function run() {
+    function Run() {
         if (isRunning) {
             UpdateGameState();
             draw();
         }
 
-        requestAnimationFrame(run);
+        requestAnimationFrame(Run);
+    }
+
+    function UpdateGameState() {
+        CollisionDetection();
+        UpdatePadPosition();
+        UpdateBallPosition();
     }
 
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        drawBricks();
-        drawBall();
-        drawPad();
-        drawHUD();
+        DrawBricks();
+        DrawBall();
+        DrawPad();
+        DrawHUD();
     }
 
-    function UpdateGameState() {
-        collisionDetection();
-        updateBallPosition();
-        updatePadPosition();
-    }
-
-    function drawBall() {
+    function DrawBall() {
         ctx.beginPath();
         ctx.arc(x, y, ballRadius, 0, 2*Math.PI);
         ctx.fillStyle = "#0095DD";
@@ -102,7 +102,7 @@
         ctx.closePath();
     }
 
-    function drawPad() {
+    function DrawPad() {
         ctx.beginPath();
         ctx.rect(padX, padY, padWidth, padHeight);
         ctx.fillStyle = "#0095DD";
@@ -110,7 +110,7 @@
         ctx.closePath();
     }
 
-    function drawBricks() {
+    function DrawBricks() {
         for(col = 0; col < brickColumnCount; col++) {
             for(row = 0; row < brickRowCount; row++) {
                 if (bricks[col][row].status > 0) {
@@ -138,51 +138,59 @@
         }
     }
 
-    function drawHUD() {
-        drawScore();
-        drawLives();
+    function DrawHUD() {
+        DrawScore();
+        DrawLives();
     }
 
-    function drawScore() {
+    function DrawScore() {
         ctx.font = "16px Arial";
         ctx.fillStyle = "#0095DD";
         ctx.fillText("Score: " + score, 8, 20);
     }
 
-    function drawLives() {
+    function DrawLives() {
         ctx.font = "16px Arial";
         ctx.fillStyle = "#0095FF";
         ctx.fillText("Lives: " + lives, 100, 20);
     }
 
-    function resetBall() {
-        var x = canvas.width/2;
-        var y = canvas.height - 50;
-        var dx = 0.3;
-        var dy = -2;
+    function ResetBall() {
+        ballIsOnPad = true;
+        padX = canvas.width / 2 - padWidth / 2;
+        x = canvas.width / 2;
+        y = canvas.height - (ballRadius + 10);
+        dx = 0;
+        dy = 0;
     }
 
-    function updateBallPosition() {
-        if(y + dy < ballRadius) {
-             dy = -dy;
-        } else if(y + dy > canvas.height-ballRadius) {
-            if(x + ballRadius > padX && x - ballRadius < padX + padWidth) {
-                AdjustXVelocity();
-                dy = -dy;
-            } else {
-                die();
-            }
+    function ReleaseBall() {
+        if (ballIsOnPad) {
+            ballIsOnPad = false;
+            dy = -3;
+            dx = 0;
         }
+    }
 
-        if (x + dx <= ballRadius || x + dx >= canvas.width - ballRadius) {
-            dx = -dx;
+    function UpdateBallPosition() {
+        if (ballIsOnPad) {
+            x = padX + padWidth / 2;
+            return;
         }
 
         x += dx;
         y += dy;
+
+        if ((x + ballRadius >= canvas.width) || (x - ballRadius <= 0)) {
+            dx = -dx;
+        } else if ((y - ballRadius <= 0) || BallCollidesWithPad()) {
+            dy = -dy;
+        } else if (y + ballRadius >= canvas.height) {
+            die();
+        }
     }
 
-    function updatePadPosition() {
+    function UpdatePadPosition() {
         if (leftPressed) {
             padX = padX - 3 >= 0 ? padX - 3 : 0;
         } else if (rightPressed) {
@@ -190,7 +198,7 @@
         }
     }
 
-    function collisionDetection() {
+    function CollisionDetection() {
         for(col = 0; col < brickColumnCount; col++) {
             for(row = 0; row < brickRowCount; row++) {
                 
@@ -204,7 +212,7 @@
                     }
 
                     if (totalBricks == 0) {
-                        GameOver();
+                        Win();
                     }
                 }                
             }
@@ -239,6 +247,15 @@
      
                 return true;            
             }
+        }
+
+        return false;
+    }
+
+    function BallCollidesWithPad() {
+        if (y + ballRadius >= padY && x >= padX && x <= padX + padWidth) {
+            AdjustXVelocity();
+            return true;
         }
 
         return false;
@@ -318,17 +335,28 @@
         }
     }
 
-    function getRandomInt(min, max) {
+    function GetRandomInt(min, max) {
         return Math.floor(Math.random() * (max - min)) + min;
     }
 
     function keyDownHandler(key) {
         if(key.keyCode == 39) {
             rightPressed = true;
+            return;
         } else if(key.keyCode == 37) {
             leftPressed = true;
+            return;
         } else if (key.keyCode == 27) { // escape key
             isRunning = !isRunning;
+            return;
+        } else if (key.keyCode == 32) { // space key
+            if (ballIsOnPad) {
+                ballIsOnPad = false;
+                dy = -3;
+                dx = 0;
+            }
+
+            return;
         }
     }
 
@@ -352,19 +380,36 @@
         if (lives <= 0) {
             GameOver();
         } else {
-            resetBall();
+            ResetBall();
         }
     }
 
-    function GameOver() {
+    function Stop() {
         isRunning = false;
-        resetBall();
+
         document.removeEventListener("keydown", keyDownHandler);
         document.removeEventListener("keyup", keyUpHandler);
         document.removeEventListener("mousemove", mouseMoveHandler);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
 
-    run();
+    function Win() {
+        Stop();
+        ctx.font = "72px Arial";
+        ctx.fillStyle = "#0095FF";
+        ctx.fillText("YOU WIN!", 250, 300);
+
+    }
+
+    function GameOver() {
+        Stop();
+        ctx.font = "72px Arial";
+        ctx.fillStyle = "#0095FF";
+        ctx.fillText("LOSER!", 350, 300);        
+    }
+
+    ResetBall();
+    Run();
 
     
 </script>
