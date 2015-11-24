@@ -19,6 +19,7 @@
     ctx = canvas.getContext("2d"),
     score = 0,
     lives = 3,
+    hitCount = 0,
     isRunning = true,
     ballIsOnPad = true,
     // ball props
@@ -37,8 +38,8 @@
     rightPressed = false,
     leftPressed = false,
     // bricks
-    brickRowCount = 1,
-    brickColumnCount = 1,
+    brickRowCount = 7,
+    brickColumnCount = 9,
     brickWidth = 75,
     brickHeight = 20,
     brickPadding = 10,
@@ -265,6 +266,8 @@
     function BallCollidesWithPad() {
         if (y + ballRadius >= padY && x >= padX && x <= padX + padWidth) {
             AdjustXVelocity();
+            hitCount++;
+            dy += 0.12; // ball gets a bit faster with each hit
             return true;
         }
 
