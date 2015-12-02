@@ -34,6 +34,7 @@
     padX = canvas.width/2 - padWidth,
     padY = canvas.height-10,
     padSpeed = 7,
+    dead = false,
     // pad controls
     rightPressed = false,
     leftPressed = false,
@@ -84,7 +85,9 @@
     function UpdateGameState() {
         CollisionDetection();
         UpdatePadPosition();
-        UpdateBallPosition();
+        if (!dead) {
+            UpdateBallPosition();
+        }
     }
 
     function draw() {
@@ -366,11 +369,15 @@
 
     function die() {
         lives--;
+        dead = true;
         if (lives <= 0) {
             GameOver();
         } else {
             console.log("ball out of bounds");
-            setTimeout(ResetBall, 1000);
+            setTimeout(function() {
+                ResetBall();    
+                dead = false;
+            }, 1000);            
             
         }
     }
